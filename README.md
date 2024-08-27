@@ -4,13 +4,13 @@ This is a Spring Boot application that provides CRUD operations for managing emp
 
 ## Overview
 
-CRUD Operations:
+###CRUD Operations:
 Get Employees: Retrieve a list of employees, with optional filtering by department and year of employment.
 Create Employee: Add a new employee to the database.
 Delete Employee: Remove an employee by their ID.
 Export Data: Export employee data in CSV or Excel format, with optional filtering by department and year of employment.
 
-Technologies Used
+###Technologies Used
 Java 17: The programming language used to develop the application.
 Spring Boot 3.x: Framework for building the application.
 Spring Data JPA: For database interaction.
@@ -19,7 +19,7 @@ Apache POI: For generating Excel files.
 OpenCSV: For generating CSV files.
 Maven: Build and dependency management.
 
-Code Structure
+###Code Structure
 src/main/java/com/example/emp: Main source folder containing the application code.
 
 web.controller: Houses the REST controllers responsible for handling incoming API requests and routing them to the appropriate services.
