@@ -12,6 +12,9 @@ This application provides CRUD operations for employee information and supports 
 - **Query Parameters**: `department` (optional), `year` (optional)
 - **Response**: List of employees.
 
+- ![image](https://github.com/user-attachments/assets/308f4f2a-4968-408e-b11c-31af6d1bfd51)
+
+
 ### Create Employee
 
 - **POST** `/employees`
@@ -45,7 +48,7 @@ Use tools like Postman or curl to test the API endpoints. For example:
 - {
   "name": "Saul",
   "department": "Finance",
-  "yearOfEmployment": 2011
+  "yearOfEmployment": 2020-01-01
 }
 - **DELETE** `/employees/{id}`
 - **GET** `/employees/export?format=csv`
