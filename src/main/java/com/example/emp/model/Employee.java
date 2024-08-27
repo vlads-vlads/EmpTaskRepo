@@ -1,5 +1,6 @@
 package com.example.emp.model;
 
+import com.example.emp.business.validation.NotEmptyLocalDate;
 import com.example.emp.swagger.DescriptionVariables;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +12,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PastOrPresent;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -36,5 +36,6 @@ public class Employee {
     private String department;
 
     @PastOrPresent(message = DescriptionVariables.MODEL_DATE_PAST_OR_PRESENT)
+    @NotEmptyLocalDate
     private LocalDate yearOfEmployment;
 }

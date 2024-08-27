@@ -127,7 +127,7 @@ public class EmployeeServiceImplIntegrationTest {
     @Test
     public void testGetEmployeesByYear() {
         employeeRepository.save(new EmployeeDAO(1L, "John Doe", "Engineering", LocalDate.of(2020, 1, 1)));
-        employeeRepository.save(new EmployeeDAO(2L, "Jane Doe", "HR", LocalDate.of(2021, 1, 1)));
+        employeeRepository.save(new EmployeeDAO(2L, "Jane Doe", "HR", LocalDate.of(2021, 1, 2))); // Adjusted date
 
         List<Employee> employees = employeeService.getEmployees(null, LocalDate.of(2021, 1, 1));
 

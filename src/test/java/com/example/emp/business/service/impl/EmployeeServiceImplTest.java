@@ -135,7 +135,7 @@ public class EmployeeServiceImplTest {
     @Test
     void testGetEmployees_WithYearOnly() {
         List<EmployeeDAO> employeeDAOs = Arrays.asList(employeeDAO);
-        when(employeeRepository.findByYearOfEmployment(any(LocalDate.class))).thenReturn(employeeDAOs);
+        when(employeeRepository.findByYearOfEmploymentAfter(any(LocalDate.class))).thenReturn(employeeDAOs);
         when(employeeMapStructMapper.employeeDAOToEmployee(any(EmployeeDAO.class))).thenReturn(employee);
 
         List<Employee> result = employeeService.getEmployees(null, LocalDate.of(2020, 1, 1));
@@ -143,7 +143,7 @@ public class EmployeeServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(employee.getId(), result.get(0).getId());
-        verify(employeeRepository, times(1)).findByYearOfEmployment(LocalDate.of(2020, 1, 1));
+        verify(employeeRepository, times(1)).findByYearOfEmploymentAfter(LocalDate.of(2020, 1, 1));
     }
 
     @Test

@@ -49,7 +49,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeDAOList = employeeRepository.findByDepartment(department);
             log.info("Filtered by department only. Size: {}", employeeDAOList.size());
         } else if (year != null) {
-            employeeDAOList = employeeRepository.findByYearOfEmployment(year);
+            employeeDAOList = employeeRepository.findByYearOfEmploymentAfter(year);
             log.info("Filtered by year only. Size: {}", employeeDAOList.size());
         } else {
             employeeDAOList = employeeRepository.findAll();

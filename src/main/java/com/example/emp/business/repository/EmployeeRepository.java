@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<EmployeeDAO, Long> {
 
@@ -13,6 +12,5 @@ public interface EmployeeRepository extends JpaRepository<EmployeeDAO, Long> {
 
     List<EmployeeDAO> findByDepartment(String department);
 
-    List<EmployeeDAO> findByYearOfEmployment(LocalDate year);
-
+    List<EmployeeDAO> findByYearOfEmploymentAfter(LocalDate year);
 }
