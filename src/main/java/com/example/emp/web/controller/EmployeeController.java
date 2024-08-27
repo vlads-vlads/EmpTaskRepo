@@ -8,20 +8,27 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
-import javax.validation.Valid;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.example.emp.utils.ExportUtils.exportToCSV;
-import static com.example.emp.utils.ExportUtils.exportToExcel;
 
 
 @Log4j2
@@ -43,15 +50,9 @@ public class EmployeeController {
             @ApiParam(value = "Department name to filter employees by") @RequestParam(required = false) String department,
             @ApiParam(value = "Year of hiring to filter employees by") @RequestParam(required = false) Integer year) {
 
-        List<Employee> employeeList;
+        log.info("Retrieving a list of employees with department: {} and year: {}", department, year);
 
-        if (department != null && year != null) {
-            log.info("Retrieving a list of employees for department: {} and year: {}", department, year);
-            employeeList = employeeService.getEmployees(department, year);
-        } else {
-            log.info("Retrieving a list of all employees");
-            employeeList = employeeService.getAllEmployees();
-        }
+        List<Employee> employeeList = employeeService.getEmployees(department, year);
 
         log.debug("A list of employees is found. Size: {}", employeeList.size());
         return new ResponseEntity<>(employeeList, HttpStatus.OK);
@@ -68,7 +69,7 @@ public class EmployeeController {
     public ResponseEntity<?> createEmployee(@Valid @RequestBody Employee employee,
                                             BindingResult bindingResult) {
         log.info("Saving a new employee by passing: {}", employee);
-        if(bindingResult.hasErrors()) {
+        if (bindingResult.hasErrors()) {
             log.error("New employee is not saved: error {}", bindingResult);
             List<String> errorMessages = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
@@ -76,13 +77,13 @@ public class EmployeeController {
 
             return ResponseEntity.badRequest().body(errorMessages);
         }
-        if(employee.getId() != null) {
+        if (employee.getId() != null) {
             log.error("New employee is not saved: ID must not be included in the request");
             return ResponseEntity.badRequest().body("ID must not be included in the request for a new entity");
         }
 
         Employee savedEmployee = employeeService.addEmployee(employee);
-        log.debug("New employee is saved: {}", employee);
+        log.debug("New employee is saved: {}", savedEmployee);
         return new ResponseEntity<>(savedEmployee, HttpStatus.CREATED);
     }
 
@@ -115,29 +116,35 @@ public class EmployeeController {
     }
 
     @GetMapping("/export")
+    @ApiOperation(value = "Export employees data",
+            notes = "Exports employee data based on given criteria in the specified format",
+            response = Void.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Export successful"),
+            @ApiResponse(code = 400, message = "Invalid format or other bad request"),
+            @ApiResponse(code = 204, message = "No employees found for the given criteria"),
+            @ApiResponse(code = 500, message = "Internal server error")})
     public ResponseEntity<?> exportEmployees(
-            @RequestParam(required = false) String department,
-            @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) String format,
+            @ApiParam(value = "Department name to filter employees by") @RequestParam(required = false) String department,
+            @ApiParam(value = "Year of hiring to filter employees by") @RequestParam(required = false) Integer yearAfter,
+            @ApiParam(value = "File format for export. Can be 'csv' or 'xlsx'") @RequestParam(required = false) String format,
             HttpServletResponse response) {
+
+
         if (format == null || !List.of("csv", "xlsx").contains(format.toLowerCase())) {
             return ResponseEntity.badRequest().body("Invalid format. Please specify 'csv' or 'xlsx'.");
         }
 
-        if (department == null || year == null) {
-            return ResponseEntity.badRequest().body("Both 'department' and 'year' parameters are required.");
-        }
-
-        List<Employee> employees = employeeService.getEmployees(department, year);
+        List<Employee> employees = employeeService.getEmployees(department, yearAfter);
 
         if (employees.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No employees found for the given criteria.");
         }
 
         if ("csv".equalsIgnoreCase(format)) {
-            exportToCSV(employees, response);
+            employeeService.exportToCSV(employees, response);
         } else if ("xlsx".equalsIgnoreCase(format)) {
-            exportToExcel(employees, response);
+            employeeService.exportToExcel(employees, response);
         }
 
         return ResponseEntity.ok().build();
