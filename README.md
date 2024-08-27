@@ -136,7 +136,7 @@ src/main/resources/application.properties: Configuration file for the applicatio
 
 Use tools like Postman or curl to test the API endpoints. For example:
 
-- **GET** `/employees?department=Digital&year=2023`
+- **GET** `/employees?department=Digital&year=2020-01-01`
 - **POST** `/employees` with a JSON body:
 - {
   "name": "Saul",
