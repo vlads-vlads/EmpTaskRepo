@@ -1,8 +1,37 @@
 # Employee Management System
 
+This is a Spring Boot application that provides CRUD operations for managing employee information and supports exporting data in CSV or Excel format.
+
 ## Overview
 
-This application provides CRUD operations for employee information and supports exporting data to CSV or Excel format.
+CRUD Operations:
+Get Employees: Retrieve a list of employees, with optional filtering by department and year of employment.
+Create Employee: Add a new employee to the database.
+Delete Employee: Remove an employee by their ID.
+Export Data: Export employee data in CSV or Excel format, with optional filtering by department and year of employment.
+
+Technologies Used
+Java 17: The programming language used to develop the application.
+Spring Boot 3.x: Framework for building the application.
+Spring Data JPA: For database interaction.
+Oracle Database: The relational database used for persisting employee data.
+Apache POI: For generating Excel files.
+OpenCSV: For generating CSV files.
+Maven: Build and dependency management.
+
+Code Structure
+src/main/java/com/example/emp: Main source folder containing the application code.
+
+web.controller: Houses the REST controllers responsible for handling incoming API requests and routing them to the appropriate services.
+business.service: Contains the core business logic and services that implement the application’s functionality.
+business.repository: Includes repository interfaces for interacting with the database, enabling CRUD operations and data retrieval.
+business.handlers: Manages custom exceptions and includes the global exception handler to ensure consistent error handling across the application.
+business.mappers: Contains mappers responsible for transforming data between different layers of the application, such as converting entities to DTOs and vice versa.
+business.validation: Includes custom validation logic used throughout the application to enforce business rules and data integrity.
+model: Defines the entity classes that represent the database schema, mapping the application’s data structures to database tables.
+swagger: Contains configuration and setup for API documentation, including response messages and description variables for better API visibility and usability.
+
+src/main/resources/application.properties: Configuration file for the application, including database connection settings.
 
 ## Endpoints
 
