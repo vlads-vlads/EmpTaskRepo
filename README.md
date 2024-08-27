@@ -45,7 +45,7 @@ This application provides CRUD operations for employee information and supports 
 - ![image](https://github.com/user-attachments/assets/8ff2029e-fa13-4424-9f53-76abd7c9fec6)
 
 - returns 400 status code, in case if field validation failed
-- ![image](https://github.com/user-attachments/assets/2aa53549-075f-4ac9-b55a-29a64151de80)
+- ![image](https://github.com/user-attachments/assets/13e96459-fd82-4272-8e40-ba4215fca672)
 
 
 
@@ -63,7 +63,6 @@ This application provides CRUD operations for employee information and supports 
 
 - returns 404 status code, if employee with provided ID is not found
 - ![image](https://github.com/user-attachments/assets/c1379f82-9f75-4740-af9f-f0f347179758)
-
 
 
 
