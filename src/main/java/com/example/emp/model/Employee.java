@@ -5,10 +5,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PastOrPresent;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
 
 
 @Data
@@ -30,7 +35,6 @@ public class Employee {
     @NotBlank
     private String department;
 
-    @Min(value = 1900, message = DescriptionVariables.MODEL_YEAR_MIN)
-    @Max(value = 2024, message = DescriptionVariables.MODEL_YEAR_MAX)
-    private Integer yearOfEmployment;
+    @PastOrPresent(message = DescriptionVariables.MODEL_DATE_PAST_OR_PRESENT)
+    private LocalDate yearOfEmployment;
 }

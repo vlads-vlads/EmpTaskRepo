@@ -1,10 +1,12 @@
 package com.example.emp.business.service.impl;
 
 import com.example.emp.business.handlers.EmployeeNotFoundException;
+import com.example.emp.business.handlers.ExportException;
 import com.example.emp.business.mappers.EmployeeMapStructMapper;
 import com.example.emp.business.repository.EmployeeRepository;
 import com.example.emp.business.repository.model.EmployeeDAO;
 import com.example.emp.model.Employee;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -19,6 +21,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,12 +37,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 
 
 @SpringBootTest
@@ -65,13 +70,13 @@ public class EmployeeServiceImplTest {
         employeeDAO.setId(1L);
         employeeDAO.setName("John Doe");
         employeeDAO.setDepartment("IT");
-        employeeDAO.setYearOfEmployment(2020);
+        employeeDAO.setYearOfEmployment(LocalDate.of(2020, 1, 1));
 
         employee = new Employee();
         employee.setId(1L);
         employee.setName("John Doe");
         employee.setDepartment("IT");
-        employee.setYearOfEmployment(2020);
+        employee.setYearOfEmployment(LocalDate.of(2020, 1, 1));
     }
 
     @Test
@@ -102,15 +107,43 @@ public class EmployeeServiceImplTest {
     @Test
     void testGetEmployees_WithFilters() {
         List<EmployeeDAO> employeeDAOs = Arrays.asList(employeeDAO);
-        when(employeeRepository.findByDepartmentAndYearOfEmploymentAfter(anyString(), anyInt())).thenReturn(employeeDAOs);
+        when(employeeRepository.findByDepartmentAndYearOfEmploymentAfter(anyString(), any(LocalDate.class))).thenReturn(employeeDAOs);
         when(employeeMapStructMapper.employeeDAOToEmployee(any(EmployeeDAO.class))).thenReturn(employee);
 
-        List<Employee> result = employeeService.getEmployees("IT", 2019);
+        List<Employee> result = employeeService.getEmployees("IT", LocalDate.of(2019, 1, 1));
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(employee.getId(), result.get(0).getId());
-        verify(employeeRepository, times(1)).findByDepartmentAndYearOfEmploymentAfter("IT", 2019);
+        verify(employeeRepository, times(1)).findByDepartmentAndYearOfEmploymentAfter("IT", LocalDate.of(2019, 1, 1));
+    }
+
+    @Test
+    void testGetEmployees_WithDepartmentOnly() {
+        List<EmployeeDAO> employeeDAOs = Arrays.asList(employeeDAO);
+        when(employeeRepository.findByDepartment(anyString())).thenReturn(employeeDAOs);
+        when(employeeMapStructMapper.employeeDAOToEmployee(any(EmployeeDAO.class))).thenReturn(employee);
+
+        List<Employee> result = employeeService.getEmployees("IT", null);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(employee.getId(), result.get(0).getId());
+        verify(employeeRepository, times(1)).findByDepartment("IT");
+    }
+
+    @Test
+    void testGetEmployees_WithYearOnly() {
+        List<EmployeeDAO> employeeDAOs = Arrays.asList(employeeDAO);
+        when(employeeRepository.findByYearOfEmployment(any(LocalDate.class))).thenReturn(employeeDAOs);
+        when(employeeMapStructMapper.employeeDAOToEmployee(any(EmployeeDAO.class))).thenReturn(employee);
+
+        List<Employee> result = employeeService.getEmployees(null, LocalDate.of(2020, 1, 1));
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(employee.getId(), result.get(0).getId());
+        verify(employeeRepository, times(1)).findByYearOfEmployment(LocalDate.of(2020, 1, 1));
     }
 
     @Test
@@ -166,7 +199,7 @@ public class EmployeeServiceImplTest {
 
         assertNotNull(content);
         assertTrue(content.contains("\"ID\",\"Name\",\"Department\",\"YearOfEmployment\""));
-        assertTrue(content.contains("\"1\",\"John Doe\",\"IT\",\"2020\""));
+        assertTrue(content.contains("\"1\",\"John Doe\",\"IT\",\"2020-01-01\""));
 
         assertEquals("text/csv", response.getContentType());
         assertEquals("attachment; filename=employees.csv", response.getHeader("Content-Disposition"));
@@ -182,11 +215,23 @@ public class EmployeeServiceImplTest {
 
         assertNotNull(content);
         assertTrue(content.contains("\"ID\",\"Name\",\"Department\",\"YearOfEmployment\""));
-        assertFalse(content.contains("\"1\",\"John Doe\",\"IT\",\"2020\""));
+        assertFalse(content.contains("\"1\",\"John Doe\",\"IT\",\"2020-01-01\""));
 
         assertEquals("text/csv", response.getContentType());
         assertEquals("attachment; filename=employees.csv", response.getHeader("Content-Disposition"));
     }
+
+    @Test
+    void testExportToCSV_ThrowsIOException() throws Exception {
+        HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+
+        when(mockResponse.getWriter()).thenThrow(new IOException("Simulated IOException"));
+
+        List<Employee> employees = Collections.singletonList(employee);
+
+        assertThrows(ExportException.class, () -> employeeService.exportToCSV(employees, mockResponse));
+    }
+
 
     @Test
     void testExportToExcel() throws Exception {
@@ -211,12 +256,25 @@ public class EmployeeServiceImplTest {
             assertEquals(1L, (long) dataRow.getCell(0).getNumericCellValue(), "The first data cell should contain the ID '1'.");
             assertEquals("John Doe", dataRow.getCell(1).getStringCellValue(), "The second data cell should contain the name 'John Doe'.");
             assertEquals("IT", dataRow.getCell(2).getStringCellValue(), "The third data cell should contain the department 'IT'.");
-            assertEquals(2020, (int) dataRow.getCell(3).getNumericCellValue(), "The fourth data cell should contain the year of employment '2020'.");
+            assertEquals("2020-01-01", dataRow.getCell(3).getStringCellValue(), "The fourth data cell should contain the year of employment '2020-01-01'.");
         }
 
         assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", response.getContentType(), "The response content type should be 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'.");
         assertEquals("attachment; filename=employees.xlsx", response.getHeader("Content-Disposition"), "The content-disposition header should be 'attachment; filename=employees.xlsx'.");
     }
 
+    @Test
+    void testExportToExcel_IOException() throws IOException {
 
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        doThrow(new IOException("Test Exception")).when(response).getOutputStream();
+
+        try {
+            employeeService.exportToExcel(Collections.emptyList(), response);
+        } catch (ExportException e) {
+            assert e.getMessage().contains("Failed to export to Excel");
+            assert e.getCause() instanceof IOException;
+        }
+    }
 }

@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +24,6 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -55,7 +55,7 @@ public class EmployeeControllerTest {
         employee.setId(1L);
         employee.setName("John Doe");
         employee.setDepartment("IT");
-        employee.setYearOfEmployment(2020);
+        employee.setYearOfEmployment(LocalDate.of(2020, 1, 1));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class EmployeeControllerTest {
                 .andExpect(jsonPath("$[0].id", is(employee.getId().intValue())))
                 .andExpect(jsonPath("$[0].name", is(employee.getName())))
                 .andExpect(jsonPath("$[0].department", is(employee.getDepartment())))
-                .andExpect(jsonPath("$[0].yearOfEmployment", is(employee.getYearOfEmployment())));
+                .andExpect(jsonPath("$[0].yearOfEmployment", is(employee.getYearOfEmployment().toString())));
 
         verify(employeeService).getEmployees(null, null);
     }
@@ -91,13 +91,13 @@ public class EmployeeControllerTest {
         Employee employeeWithoutId = new Employee();
         employeeWithoutId.setName("John Doe");
         employeeWithoutId.setDepartment("IT");
-        employeeWithoutId.setYearOfEmployment(2020);
+        employeeWithoutId.setYearOfEmployment(LocalDate.of(2020, 1, 1));
 
         Employee createdEmployee = new Employee();
         createdEmployee.setId(1L);
         createdEmployee.setName("John Doe");
         createdEmployee.setDepartment("IT");
-        createdEmployee.setYearOfEmployment(2020);
+        createdEmployee.setYearOfEmployment(LocalDate.of(2020, 1, 1));
 
         given(employeeService.addEmployee(any(Employee.class))).willReturn(createdEmployee);
 
@@ -109,7 +109,7 @@ public class EmployeeControllerTest {
                 .andExpect(jsonPath("$.id", is(createdEmployee.getId().intValue())))
                 .andExpect(jsonPath("$.name", is(createdEmployee.getName())))
                 .andExpect(jsonPath("$.department", is(createdEmployee.getDepartment())))
-                .andExpect(jsonPath("$.yearOfEmployment", is(createdEmployee.getYearOfEmployment())));
+                .andExpect(jsonPath("$.yearOfEmployment", is(createdEmployee.getYearOfEmployment().toString())));
 
         verify(employeeService).addEmployee(any(Employee.class));
     }
@@ -117,7 +117,7 @@ public class EmployeeControllerTest {
     @Test
     void createEmployee_ReturnsBadRequest_WhenValidationFails() throws Exception {
         Employee invalidEmployee = new Employee();
-        invalidEmployee.setName("");  // invalid name
+        invalidEmployee.setName("");
 
         mockMvc.perform(post("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -174,12 +174,12 @@ public class EmployeeControllerTest {
     @Test
     void exportEmployees_ReturnsOk_ForCSVFormat() throws Exception {
         List<Employee> employees = Arrays.asList(employee);
-        given(employeeService.getEmployees(anyString(), anyInt())).willReturn(employees);
+        given(employeeService.getEmployees(anyString(), any(LocalDate.class))).willReturn(employees);
         doNothing().when(employeeService).exportToCSV(anyList(), any(HttpServletResponse.class));
 
         mockMvc.perform(get("/employees/export")
                         .param("department", "Digital")
-                        .param("yearAfter", "2023")
+                        .param("yearAfter", "2023-01-01")
                         .param("format", "csv"))
                 .andExpect(status().isOk());
 
@@ -189,12 +189,12 @@ public class EmployeeControllerTest {
     @Test
     void exportEmployees_ReturnsOk_ForXLSXFormat() throws Exception {
         List<Employee> employees = Arrays.asList(employee);
-        given(employeeService.getEmployees(anyString(), anyInt())).willReturn(employees);
+        given(employeeService.getEmployees(anyString(), any(LocalDate.class))).willReturn(employees);
         doNothing().when(employeeService).exportToExcel(any(), any(HttpServletResponse.class));
 
         mockMvc.perform(get("/employees/export")
                         .param("department", "Digital")
-                        .param("yearAfter", "2023")
+                        .param("yearAfter", "2023-01-01")
                         .param("format", "xlsx"))
                 .andExpect(status().isOk());
 
@@ -203,16 +203,16 @@ public class EmployeeControllerTest {
 
     @Test
     void exportEmployees_ReturnsNoContent_WhenNoEmployeesFound() throws Exception {
-        given(employeeService.getEmployees(anyString(), anyInt())).willReturn(Collections.emptyList());
+        given(employeeService.getEmployees(anyString(), any(LocalDate.class))).willReturn(Collections.emptyList());
 
         mockMvc.perform(get("/employees/export")
                         .param("department", "Digital")
-                        .param("yearAfter", "2023")
+                        .param("yearAfter", "2023-01-01")
                         .param("format", "csv"))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string("No employees found for the given criteria."));
 
-        verify(employeeService).getEmployees("Digital", 2023);
+        verify(employeeService).getEmployees("Digital", LocalDate.of(2023, 1, 1));
         verify(employeeService, Mockito.never()).exportToCSV(any(), any(HttpServletResponse.class));
     }
 
@@ -220,12 +220,12 @@ public class EmployeeControllerTest {
     void exportEmployees_ReturnsBadRequest_ForInvalidFormat() throws Exception {
         mockMvc.perform(get("/employees/export")
                         .param("department", "Digital")
-                        .param("yearAfter", "2023")
+                        .param("yearAfter", "2023-01-01")
                         .param("format", "pdf"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Invalid format. Please specify 'csv' or 'xlsx'."));
 
-        verify(employeeService, Mockito.never()).getEmployees(anyString(), anyInt());
+        verify(employeeService, Mockito.never()).getEmployees(anyString(), any(LocalDate.class));
     }
 
 }

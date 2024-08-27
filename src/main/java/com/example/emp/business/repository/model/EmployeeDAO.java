@@ -11,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,5 +32,5 @@ public class EmployeeDAO {
     private String department;
 
     @Column(name = "year_of_employment")
-    private Integer yearOfEmployment;
+    private LocalDate yearOfEmployment;
 }

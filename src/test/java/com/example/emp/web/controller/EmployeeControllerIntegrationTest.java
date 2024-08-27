@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,12 +41,12 @@ public class EmployeeControllerIntegrationTest {
 
     @Test
     public void testGetEmployees() throws Exception {
-        EmployeeDAO employeeDAO = new EmployeeDAO(null, "John Doe", "Engineering", 2020);
+        EmployeeDAO employeeDAO = new EmployeeDAO(null, "John Doe", "Engineering", LocalDate.of(2020, 1, 1));
         employeeRepository.save(employeeDAO);
 
         mockMvc.perform(get("/employees")
                         .param("department", "Engineering")
-                        .param("year", "2020")
+                        .param("year", "2020-01-01")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
@@ -61,7 +62,7 @@ public class EmployeeControllerIntegrationTest {
 
     @Test
     public void testCreateEmployee() throws Exception {
-        Employee employee = new Employee(null, "Jane Doe", "HR", 2021);
+        Employee employee = new Employee(null, "Jane Doe", "HR", LocalDate.of(2021, 1, 1));
 
         mockMvc.perform(post("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -72,7 +73,7 @@ public class EmployeeControllerIntegrationTest {
 
     @Test
     public void testCreateEmployeeWithValidationErrors() throws Exception {
-        Employee employee = new Employee(null, "", "HR", 2021); // Invalid name
+        Employee employee = new Employee(null, "", "HR", LocalDate.of(2021, 1, 1)); // Invalid name
 
         mockMvc.perform(post("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,7 +83,7 @@ public class EmployeeControllerIntegrationTest {
 
     @Test
     public void testCreateEmployeeWithId() throws Exception {
-        Employee employee = new Employee(1L, "Jane Doe", "HR", 2021);
+        Employee employee = new Employee(1L, "Jane Doe", "HR", LocalDate.of(2021, 1, 1));
 
         mockMvc.perform(post("/employees")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +93,7 @@ public class EmployeeControllerIntegrationTest {
 
     @Test
     public void testDeleteEmployee() throws Exception {
-        EmployeeDAO employeeDAO = employeeRepository.save(new EmployeeDAO(1L, "John Doe", "Engineering", 2020));
+        EmployeeDAO employeeDAO = employeeRepository.save(new EmployeeDAO(1L, "John Doe", "Engineering", LocalDate.of(2020, 1, 1)));
 
         mockMvc.perform(delete("/employees/{id}", employeeDAO.getId()))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
@@ -109,7 +110,7 @@ public class EmployeeControllerIntegrationTest {
 
     @Test
     public void testExportEmployees() throws Exception {
-        employeeRepository.save(new EmployeeDAO(1L, "John Doe", "Engineering", 2020));
+        employeeRepository.save(new EmployeeDAO(1L, "John Doe", "Engineering", LocalDate.of(2020, 1, 1)));
 
         mockMvc.perform(get("/employees/export")
                         .param("format", "csv"))

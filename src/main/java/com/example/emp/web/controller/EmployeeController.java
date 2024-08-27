@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,7 +50,7 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<Employee>> getEmployees(
             @ApiParam(value = "Department name to filter employees by") @RequestParam(required = false) String department,
-            @ApiParam(value = "Year of hiring to filter employees by") @RequestParam(required = false) Integer year) {
+            @ApiParam(value = "Year of hiring to filter employees by") @RequestParam(required = false)  LocalDate year) {
 
         log.info("Retrieving a list of employees with department: {} and year: {}", department, year);
 
@@ -126,12 +128,13 @@ public class EmployeeController {
             @ApiResponse(code = 500, message = "Internal server error")})
     public ResponseEntity<?> exportEmployees(
             @ApiParam(value = "Department name to filter employees by") @RequestParam(required = false) String department,
-            @ApiParam(value = "Year of hiring to filter employees by") @RequestParam(required = false) Integer yearAfter,
-            @ApiParam(value = "File format for export. Can be 'csv' or 'xlsx'") @RequestParam(required = false) String format,
+            @ApiParam(value = "Year of hiring to filter employees by") @RequestParam(required = false) LocalDate yearAfter,
+            @ApiParam(value = "File format for export. Can be 'csv' or 'xlsx'") @RequestParam(required = false, defaultValue = "csv") String format,
             HttpServletResponse response) {
 
 
-        if (format == null || !List.of("csv", "xlsx").contains(format.toLowerCase())) {
+        format = format.toLowerCase();
+        if (!List.of("csv", "xlsx").contains(format)) {
             return ResponseEntity.badRequest().body("Invalid format. Please specify 'csv' or 'xlsx'.");
         }
 

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<Employee> getEmployees(String department, Integer year) {
+    public List<Employee> getEmployees(String department, LocalDate year) {
         List<EmployeeDAO> employeeDAOList;
 
         if (department != null && year != null) {
@@ -118,7 +119,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 row.createCell(0).setCellValue(emp.getId());
                 row.createCell(1).setCellValue(emp.getName());
                 row.createCell(2).setCellValue(emp.getDepartment());
-                row.createCell(3).setCellValue(emp.getYearOfEmployment());
+                row.createCell(3).setCellValue(String.valueOf(emp.getYearOfEmployment()));
             }
 
             workbook.write(response.getOutputStream());
